@@ -1,9 +1,3 @@
-const notice = (msg) => new Notice(msg, 5000);
-const log = (msg) => console.log(msg);
-
-const ARTIST_CREDIT_KEY = "artist-credit";
-const API_URL = "https://beta.musicbrainz.org/ws/2/release";
-
 module.exports = {
   entry: start,
   settings: {
@@ -11,6 +5,9 @@ module.exports = {
     author: "Joe Moran",
   },
 };
+
+const notice = (msg) => new Notice(msg, 5000);
+
 
 let QuickAdd;
 let Settings;
@@ -39,12 +36,12 @@ async function start(params, settings) {
 
   const { albumTitle, artist } = await showInitialPrompts();
 
-  const searchResults = await fetchMusicBrainzReleasesByQueryParams({
+  const searchResults = await getMusicbrainzReleasesByQueryParams({
     release: albumTitle,
     artist,
   });
 
-  QuickAdd.variables = buildQuickAddVariables(
+  QuickAdd.variables = buildQuickAddTemplateData(
     await promptUserForSelectingSuggestions(searchResults),
     await promptUserForCustomDataAttributes()
   );
@@ -52,7 +49,7 @@ async function start(params, settings) {
 
 /**
  *
- * @returns {Promise<String>}
+ * @returns {Promise<String>} The album title, as entered by user
  */
 function promptUserForAlbum() {
   return QuickAdd.quickAddApi.inputPrompt(prompts.albumTitle);
@@ -60,7 +57,7 @@ function promptUserForAlbum() {
 
 /**
  *
- * @returns {Promise<String>}
+ * @returns {Promise<String>} The artist, as entered by user
  */
 function promptUserForArtist() {
   return QuickAdd.quickAddApi.inputPrompt(prompts.artist);
@@ -68,7 +65,7 @@ function promptUserForArtist() {
 
 /**
  *
- * @returns {Promise<Object>}
+ * @returns {Promise<Object>} The user-entered data for searching for a release
  */
 function showInitialPrompts() {
   return Promise.all([promptUserForAlbum(), promptUserForArtist()]).then(
@@ -83,32 +80,49 @@ function showInitialPrompts() {
   );
 }
 
+/**
+ *
+ * @returns {Promise<object>}
+ */
 function promptUserForCustomDataAttributes() {
   return Promise.all([
     promptUserForRating(),
-    promptUserForOwnershipStatus(),
+    promptUserForisOwnerOfRelease(),
   ]).then(
-    ([rating, ownershipStatus]) =>
+    ([rating, isOwnerOfRelease]) =>
       new Promise(async (resolve) =>
         resolve({
           rating,
-          ownershipStatus,
-          ownedFormats: await promptUserForOwnedFormats(ownershipStatus),
+          isOwnerOfRelease,
+          ownedFormats: await promptUserForOwnedFormats(isOwnerOfRelease),
         })
       )
   );
 }
 
-function promptUserForOwnershipStatus() {
+/**
+ *
+ * @returns {Promise<boolean>} Whether the user owns the release or not, as entered by user
+ */
+function promptUserForisOwnerOfRelease() {
   return QuickAdd.quickAddApi.yesNoPrompt(prompts.ownership);
 }
 
-function promptUserForOwnedFormats(ownershipStatus) {
-  return ownershipStatus
+/**
+ *
+ * @param {boolean} isOwnerOfRelease Whether the user owns the release or not
+ * @returns {Promise<Array>} The formats of the release that the user owns; returns empty if user does not own release
+ */
+function promptUserForOwnedFormats(isOwnerOfRelease) {
+  return isOwnerOfRelease
     ? QuickAdd.quickAddApi.checkboxPrompt(prompts.formatsOwned.options)
     : new Promise((resolve) => resolve([]));
 }
 
+/**
+ *
+ * @returns {Promise<string>} The subjective rating of the release, as enterd by user
+ */
 function promptUserForRating() {
   return QuickAdd.quickAddApi.suggester(
     prompts.rating.options,
@@ -116,27 +130,43 @@ function promptUserForRating() {
   );
 }
 
-function buildQuickAddVariables(
-  { title, date, artist, genres },
-  { rating, ownershipStatus, ownedFormats }
+/**
+ *
+ * @param {ReleaseData} releaseData The release data from musicbrainz
+ * @param {UserInputData} userInputData The data from user input via prompts
+ * @returns {QuickAddTemplateData}
+ */
+function buildQuickAddTemplateData(
+
+  { title, date, artist, genres, id },
+  { rating, isOwnerOfRelease, ownedFormats }
 ) {
+  const ILLEGAL_OBSIDIAN_FILE_NAME_PATTERN = /[\\,#%&\{\}\/*<>?$\'\":@]*/g;
+
   return {
     title: title,
     date: date,
-    artist: linkify(artist.name),
+    artist: linkifyEmbedded(artist.name),
     genres: tagifyList(genres),
     formats: tagifyList(ownedFormats),
-    ownership: ownershipStatus,
-    rating: rating,
-    fileName: replaceIllegalFileNameCharactersInString(title),
+    isOwnerOfRelease,
+    rating,
+    fileName: title.replace(ILLEGAL_OBSIDIAN_FILE_NAME_PATTERN, ""),
+    cover: linkifyImage(buildCoverArtArchiveFrontCoverPath(id)),
+    musicbrainzId: id,
   };
 }
 
+/**
+ *
+ * @param {ReleaseData[]} suggestions
+ * @returns {Promise<ReleaseData} The chosen release with which to proceed adding via QuickAdd, as selected by user
+ */
 function promptUserForSelectingSuggestions(suggestions) {
   return new Promise((resolve, reject) => {
     QuickAdd.quickAddApi
-      .suggester(suggestions.map(formatTitleForSuggestion), suggestions)
-      .then((selectedRelease) => {
+      .suggester(suggestions.map(formatTitleForSuggestionPrompt), suggestions)
+      .then(async (selectedRelease) => {
         if (!selectedRelease) {
           notice("No choice selected.");
           reject(new Error("No choice selected."));
@@ -147,41 +177,58 @@ function promptUserForSelectingSuggestions(suggestions) {
   });
 }
 
-function buildReleaseClientModel(release) {
+/**
+ *
+ * @param {object} release The release data from searching Musicbrainz
+ * @returns {ReleaseData}
+ */
+function buildReleaseData(release) {
+  const ARTIST_CREDIT_KEY = "artist-credit";
+
   return {
     title: release.title,
     artist: release[ARTIST_CREDIT_KEY][0],
     genres: release.tags?.map((tag) => tag.name) ?? [],
     date: release.date,
+    id: release.id,
   };
 }
 
-function formatTitleForSuggestion({ title, artist, date, tags = [] }) {
+function formatTitleForSuggestionPrompt({ title, artist, date, tags = [] }) {
   return `${title} - ${artist.name} (${date}) - ${tags.toString()}`;
 }
 
 /**
  *
  * @param {object} queryParams
- * @returns
+ * @throws Will throw Error if no releases are found
+ * @returns {ReleaseData[]} The release results from searching for a release
  */
-async function fetchMusicBrainzReleasesByQueryParams(queryParams) {
-  const searchResults = await apiGet(API_URL, queryParams);
+async function getMusicbrainzReleasesByQueryParams(queryParams) {
+  const MUSICBRAINZ_API_URL = "https://beta.musicbrainz.org/ws/2/release";
+  const searchResults = await fetchMusicbrainzReleases(
+    MUSICBRAINZ_API_URL,
+    queryParams
+  );
 
   if (!searchResults.releases || !searchResults.releases.length) {
     notice("No results found.");
     throw new Error("No results found.");
   }
 
-  return searchResults.releases.map(buildReleaseClientModel);
+  return searchResults.releases.map(buildReleaseData);
 }
 
-function linkify(textToLinkify) {
+function linkifyEmbedded(textToLinkify) {
   return `[[${textToLinkify}]]`;
 }
 
+function linkifyImage(imagePath) {
+  return `![img|200](${imagePath})`;
+}
+
 function tagify(textToTagify) {
-  return `#${textToTagify}`;
+  return `#${textToTagify.replace(/\s/, "-").toLowerCase()}`;
 }
 
 function tagifyList(list) {
@@ -191,20 +238,10 @@ function tagifyList(list) {
   return list.map((item) => tagify(item.trim())).join(", ");
 }
 
-function linkifyList(list) {
-  if (list.length === 0) return "";
-  if (list.length === 1) return linkify(list[0]);
-
-  return list.map((item) => linkify(item.trim())).join(", ");
-}
-
-function replaceIllegalFileNameCharactersInString(string) {
-  return string.replace(/[\\,#%&\{\}\/*<>?$\'\":@]*/g, "");
-}
-
 /**
  *
  * @param {object} queryParams
+ * @returns {string} The query string for requests to musicbrainz API.
  */
 function buildQueryString(queryParams) {
   return Object.entries(queryParams).reduce(
@@ -218,10 +255,9 @@ function buildQueryString(queryParams) {
  *
  * @param {string} url
  * @param {object} queryParams
- * @param {}
- * @returns
+ * @returns {object[]}
  */
-async function apiGet(url, queryParams) {
+async function fetchMusicbrainzReleases(url, queryParams) {
   let finalURL = new URL(url);
   if (queryParams) {
     finalURL.searchParams.append("query", buildQueryString(queryParams));
@@ -240,3 +276,38 @@ async function apiGet(url, queryParams) {
     })
   );
 }
+
+function buildCoverArtArchiveFrontCoverPath(releaseId) {
+  return `https://coverartarchive.org/release/${releaseId}/front`;
+}
+
+/**
+ * @typedef {Object} ReleaseData The formatted, and most important, data for a release from musicbrainz
+ * @property {string} title The title of the release
+ * @property {string} artist The artist who released...the release
+ * @property {string[]} genres The genres rellated to the release
+ * @property {string} date The data the release was...released
+   @property {string} id The the musicbrainz release id
+ */
+
+/**
+ * @typedef {object} UserInputData The additional input data, from QuickAdd prompts, to use for {@link QuickAddTemplateData}
+ * @property {string} rating The rate of the release: 1-5, or #todo
+ * @property {boolean} isOwnerOfRelease Whether the user owns the release
+ * @property {string[]} ownedFormats The list of formats of the release that the user owns
+ */
+
+/**
+ * @typedef {object} QuickAddTemplateData The data used in an Obsidian Markdown template via QuickAdd
+ * @property {string} title The title of the release
+ * @property {string} artist The artist who released...the release
+ * @property {string} genres The list of genres related to the release; comma-separated
+ * @property {string} date The data the release was...released
+ * @property {string} musicbrainzId The the musicbrainz release id
+ * @property {boolean} isOwnerOfRelease Whether the user owns this release
+ * @property {string} formats The list of formats of the release that the user owns; comma-separated
+ * @property {string} rating The rating of the release: 1-5 or #todo
+ * @property {string} fileName The name of the markdown file to be generated via template
+ * @property {string} cover The path of the release cover at {@link https://coverartarchive.org| cover art archive}
+ * @property {string} musicbrainzId The id of the release at {@link https://musicbrainz.org| musicbrainz}
+ */
