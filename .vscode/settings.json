@@ -1,0 +1,66 @@
+{
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "editor.trimAutoWhitespace": true,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true,
+    "source.fixAll.stylelint": true,
+    "source.fixAll.markdownlint": true
+  },
+
+  "editor.formatOnPaste": false,
+  "editor.formatOnType": false,
+  "editor.autoClosingQuotes": "never",
+  "editor.autoSurround": "never",
+  "editor.suggestSelection": "first",
+  "[markdown]": {
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 80
+  },
+  "files.trimTrailingWhitespace": true,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.exclude": {
+    "**/*.log": true,
+    "**/*.log*": true,
+    "**/dist": true,
+    "**/coverage": true
+  },
+  "files.associations": {
+    ".markdownlintrc": "jsonc"
+  },
+  "eslint.validate": ["javascript", "javascriptreact", "html"],
+  "eslint.format.enable": true,
+
+  "emmet.triggerExpansionOnTab": true,
+
+  "json.format.enable": false,
+  "stylelint.enable": true,
+  "stylelint.validate": ["css", "less", "postcss"],
+  "html.format.enable": false,
+  "cssrem.rootFontSize": 16,
+  "css.validate": false,
+  "scss.validate": false,
+  "vetur.format.enable": false,
+  "vetur.validation.style": false,
+  "vetur.completion.tagCasing": "initial",
+  "vetur.validation.script": false,
+  "vetur.completion.scaffoldSnippetSources": {
+    "user": "🗒️",
+    "workspace": "💼"
+  },
+  "vetur.validation.template": false,
+  "git.autofetch": true,
+  "javascript.format.enable": false,
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
+  "liveshare.authenticationProvider": "Microsoft",
+  "jest.autoRun": {
+    "watch": false,
+    "onSave": "test-file"
+ },
+ "jest.jestCommandLine": "npm run test --"
+}

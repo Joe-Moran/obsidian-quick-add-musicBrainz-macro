@@ -1,10 +1,4 @@
-module.exports = {
-  entry: start,
-  settings: {
-    name: "Music Script",
-    author: "Joe Moran",
-  },
-};
+
 
 const notice = (msg) => new Notice(msg, 5000);
 
@@ -44,7 +38,7 @@ const prompts = {
   },
 };
 
-async function start(params, settings) {
+export default async function start(params, settings) {
   init(params, settings);
 
   const { albumTitle, artist } = await showInitialPrompts();
