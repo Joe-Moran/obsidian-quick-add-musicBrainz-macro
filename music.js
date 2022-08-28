@@ -8,6 +8,24 @@ module.exports = {
 
 const notice = (msg) => new Notice(msg, 5000);
 
+const musicBrainzEntityTypes = {
+  RELEASE: 'release',
+  RELEASE_GROUP: 'release-group',
+};
+
+const musicBrainzEntityQuery = {
+  [musicBrainzEntityTypes.RELEASE]: 'releases',
+  [musicBrainzEntityTypes.RELEASE_GROUP]: 'release-groups'
+};
+
+const ENTITY_ARTIST_CREDIT_KEY = "artist-credit";
+
+
+function getMusicBrainzEntityQueryByEntityType(entityType) {
+  return musicBrainzEntityQuery[entityType];
+}
+
+const MUSICBRAINZ_ENTITY_TYPE = musicBrainzEntityTypes.RELEASE_GROUP;
 
 let QuickAdd;
 let Settings;
@@ -15,9 +33,9 @@ let Settings;
 const prompts = {
   albumTitle: "Album: ",
   artist: "Artist: ",
-  ownership: "Own?",
+  ownership: "Do you own this record?",
   formatsOwned: {
-    label: "Which Formats?",
+    label: "Which formats do you own?",
     options: ["CD", "Digital", "Vinyl"],
   },
   rating: {
@@ -25,11 +43,6 @@ const prompts = {
     options: ["#todo", "⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"],
   },
 };
-
-function init(params, settings) {
-  QuickAdd = params;
-  Settings = settings;
-}
 
 async function start(params, settings) {
   init(params, settings);
@@ -45,6 +58,11 @@ async function start(params, settings) {
     await promptUserForSelectingSuggestions(searchResults),
     await promptUserForCustomDataAttributes()
   );
+}
+
+function init(params, settings) {
+  QuickAdd = params;
+  Settings = settings;
 }
 
 /**
@@ -138,7 +156,7 @@ function promptUserForRating() {
  */
 function buildQuickAddTemplateData(
 
-  { title, date, artist, genres, id },
+  { title, date, artist, genres, id, cover },
   { rating, isOwnerOfRelease, ownedFormats }
 ) {
   const ILLEGAL_OBSIDIAN_FILE_NAME_PATTERN = /[\\,#%&\{\}\/*<>?$\'\":@]*/g;
@@ -152,7 +170,7 @@ function buildQuickAddTemplateData(
     isOwnerOfRelease,
     rating,
     fileName: title.replace(ILLEGAL_OBSIDIAN_FILE_NAME_PATTERN, ""),
-    cover: linkifyImage(buildCoverArtArchiveFrontCoverPath(id)),
+    cover: linkifyImage(cover),
     musicbrainzId: id,
   };
 }
@@ -183,40 +201,44 @@ function promptUserForSelectingSuggestions(suggestions) {
  * @returns {ReleaseData}
  */
 function buildReleaseData(release) {
-  const ARTIST_CREDIT_KEY = "artist-credit";
 
   return {
     title: release.title,
-    artist: release[ARTIST_CREDIT_KEY][0],
+    artist: release[ENTITY_ARTIST_CREDIT_KEY][0],
     genres: release.tags?.map((tag) => tag.name) ?? [],
-    date: release.date,
+    date: release['first-release-date'],
     id: release.id,
+    cover: buildCoverArtArchiveFrontCoverPath(release.id)
   };
 }
 
 function formatTitleForSuggestionPrompt({ title, artist, date, tags = [] }) {
-  return `${title} - ${artist.name} (${date}) - ${tags.toString()}`;
+  return `${title} - ${artist.name} (${date}) - ${tagifyList(tags)}`;
 }
 
 /**
  *
  * @param {object} queryParams
- * @throws Will throw Error if no releases are found
+ * @throws {Error} Will throw Error if no releases are found
  * @returns {ReleaseData[]} The release results from searching for a release
  */
 async function getMusicbrainzReleasesByQueryParams(queryParams) {
-  const MUSICBRAINZ_API_URL = "https://beta.musicbrainz.org/ws/2/release";
+  const MUSICBRAINZ_API_URL = `https://beta.musicbrainz.org/ws/2/${MUSICBRAINZ_ENTITY_TYPE}`;
   const searchResults = await fetchMusicbrainzReleases(
-    MUSICBRAINZ_API_URL,
-    queryParams
+    buildRequestPath(
+      MUSICBRAINZ_API_URL,
+      queryParams
+    ).href
   );
 
-  if (!searchResults.releases || !searchResults.releases.length) {
+  const responseEntity = getMusicBrainzEntityQueryByEntityType(MUSICBRAINZ_ENTITY_TYPE);
+  const responseEntities = searchResults[responseEntity].filter((searchResult) => searchResult['primary-type'] === 'Album');
+  if (!responseEntities || !responseEntities.length) {
     notice("No results found.");
     throw new Error("No results found.");
   }
 
-  return searchResults.releases.map(buildReleaseData);
+  return responseEntities.map(buildReleaseData);
 }
 
 function linkifyEmbedded(textToLinkify) {
@@ -254,19 +276,13 @@ function buildQueryString(queryParams) {
 /**
  *
  * @param {string} url
- * @param {object} queryParams
  * @returns {object[]}
  */
-async function fetchMusicbrainzReleases(url, queryParams) {
-  let finalURL = new URL(url);
-  if (queryParams) {
-    finalURL.searchParams.append("query", buildQueryString(queryParams));
-    finalURL.searchParams.append("fmt", "json");
-  }
+async function fetchMusicbrainzReleases(url) {
 
   return JSON.parse(
     await request({
-      url: finalURL.href,
+      url,
       method: "GET",
       cache: "no-cache",
       headers: {
@@ -277,8 +293,17 @@ async function fetchMusicbrainzReleases(url, queryParams) {
   );
 }
 
-function buildCoverArtArchiveFrontCoverPath(releaseId) {
-  return `https://coverartarchive.org/release/${releaseId}/front`;
+function buildRequestPath(url, queryParams) {
+  let finalURL = new URL(url);
+  if (queryParams) {
+    finalURL.searchParams.append("query", buildQueryString(queryParams));
+    finalURL.searchParams.append("fmt", "json");
+  }
+  return finalURL;
+}
+
+function buildCoverArtArchiveFrontCoverPath(entityId) {
+  return `https://coverartarchive.org/${MUSICBRAINZ_ENTITY_TYPE}/${entityId}/front`;
 }
 
 /**
