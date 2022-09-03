@@ -1,16 +1,7 @@
 {
-  // See http://go.microsoft.com/fwlink/?LinkId=827846
-  // for the documentation about the extensions.json format
   "recommendations": [
-    "octref.vetur",
-    "dariofuzinato.vue-peek",
     "dbaeumer.vscode-eslint",
-    "mrmlnc.vscode-scss",
     "orta.vscode-jest",
     "hookyqr.jsdoctagcomplete",
-    "lokalise.i18n-ally",
-    "maxvanderschee.web-accessibility",
-    "deque-systems.vscode-axe-linter",
-    "stylelint.vscode-stylelint"
   ]
 }

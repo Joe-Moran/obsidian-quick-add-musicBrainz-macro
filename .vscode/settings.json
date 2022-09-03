@@ -6,10 +6,8 @@
   "editor.defaultFormatter": "dbaeumer.vscode-eslint",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true,
-    "source.fixAll.stylelint": true,
     "source.fixAll.markdownlint": true
   },
-
   "editor.formatOnPaste": false,
   "editor.formatOnType": false,
   "editor.autoClosingQuotes": "never",
@@ -32,32 +30,14 @@
   "files.associations": {
     ".markdownlintrc": "jsonc"
   },
-  "eslint.validate": ["javascript", "javascriptreact", "html"],
+  "eslint.validate": ["javascript", "javascriptreact"],
   "eslint.format.enable": true,
-
   "emmet.triggerExpansionOnTab": true,
-
-  "json.format.enable": false,
-  "stylelint.enable": true,
-  "stylelint.validate": ["css", "less", "postcss"],
-  "html.format.enable": false,
-  "cssrem.rootFontSize": 16,
-  "css.validate": false,
-  "scss.validate": false,
-  "vetur.format.enable": false,
-  "vetur.validation.style": false,
-  "vetur.completion.tagCasing": "initial",
-  "vetur.validation.script": false,
-  "vetur.completion.scaffoldSnippetSources": {
-    "user": "🗒️",
-    "workspace": "💼"
-  },
-  "vetur.validation.template": false,
+  "json.format.enable": true,
   "git.autofetch": true,
   "javascript.format.enable": false,
   "javascript.updateImportsOnFileMove.enabled": "always",
   "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
-  "liveshare.authenticationProvider": "Microsoft",
   "jest.autoRun": {
     "watch": false,
     "onSave": "test-file"
