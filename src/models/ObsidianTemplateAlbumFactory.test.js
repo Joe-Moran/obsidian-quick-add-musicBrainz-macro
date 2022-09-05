@@ -11,13 +11,14 @@ it('Builds expected data from ObsidanTemplateAlbumFactory.buildFromQuickAddUserI
     rating: "⭐⭐⭐⭐⭐",
     coverPath: 'www.path.com'
   })).toEqual({
-    musicbrainzId: '1',
-    releaseDate: '10-10-1222',
-    artist: '[[test artist]]',
+    id: '1',
+    date: '10-10-1222',
+    artist: 'test artist',
     title: 'An Album!',
-    genres:  "#hip-hop, #soul",
-    ownedFormats: '#cd, #vinyl',
+    genres:  "[hip hop, soul]",
+    formats: '[CD, vinyl]',
+    fileName: 'An Album!',
     rating: "⭐⭐⭐⭐⭐",
-    coverPath: '![img|200](www.path.com)'
+    path: '![img|200](www.path.com)'
   })
 })

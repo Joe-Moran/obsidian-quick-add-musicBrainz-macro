@@ -6,7 +6,7 @@ export default class ObsidianTemplateAlbum {
     musicbrainzId = "",
     title = "",
     releaseDate = "",
-    artist = "",
+    artistName = "",
     genres = "",
     ownedFormats = "",
     rating = "",
@@ -15,7 +15,7 @@ export default class ObsidianTemplateAlbum {
     this[templateValues.ID] = musicbrainzId;
     this[templateValues.TITLE] = title;
     this[templateValues.RELEASE_DATE] = releaseDate;
-    this[templateValues.ARTIST] = artist;
+    this[templateValues.ARTIST] = artistName;
     this[templateValues.GENRES] = genres;
     this[templateValues.OWNED_FORMATS] = ownedFormats;
     this[templateValues.RATING] = rating;
