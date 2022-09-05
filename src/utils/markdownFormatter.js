@@ -21,10 +21,15 @@ function formatSearchResultSuggestion({ title, artistName, releaseDate, tags = [
   return `${title} - ${artistName} (${releaseDate}) - ${formatAsTags(tags)}`;
 }
 
+function formatAsFrontmatterList(frontmatterValues) {
+  return frontmatterValues.join(", ")
+}
+
 export {
   formatAsWikiLink,
   formatAsEmbeddedImageLink,
   formatAsTag,
   formatAsTags,
-  formatSearchResultSuggestion
+  formatSearchResultSuggestion,
+  formatAsFrontmatterList,
 }

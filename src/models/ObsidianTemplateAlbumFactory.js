@@ -1,7 +1,6 @@
 import {
-  formatAsWikiLink,
   formatAsEmbeddedImageLink,
-  formatAsTags,
+  formatAsFrontmatterList,
 } from "../utils/markdownFormatter";
 import ObsidianTemplateAlbum from "./ObsidianTemplateAlbum";
 
@@ -19,12 +18,12 @@ export default class ObsidianTemplateAlbumFactory {
     return new ObsidianTemplateAlbum({
       title: title,
       releaseDate: releaseDate,
-      artist: formatAsWikiLink(artistName),
-      genres: formatAsTags(genres),
-      ownedFormats: formatAsTags(ownedFormats),
+      artist: artistName,
+      genres: formatAsFrontmatterList(genres),
+      ownedFormats: formatAsFrontmatterList(ownedFormats),
       rating,
-      coverPath: formatAsEmbeddedImageLink(coverPath),
       musicbrainzId: id,
+      coverPath: formatAsEmbeddedImageLink(coverPath),
     });
   }
 }
