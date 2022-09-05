@@ -3,13 +3,20 @@ import templateValues from './data/obsidianTemplateAlbumValues';
 ---
 
 title: { `{{VALUE:${templateValues.TITLE}}}`}
+
 artist: { `{{VALUE:${templateValues.ARTIST}}}` }
+
 rating: { `{{VALUE:${templateValues.RATING}}}` }
+
 date: { `{{VALUE:${templateValues.RELEASE_DATE}}}` }
-formats: { `{{VALUE:${templateValues.OWNDED_FORMATS}}}` }
+
+formats: { `{{VALUE:${templateValues.OWNED_FORMATS}}}` }
+
 genres: { `{{VALUE:${templateValues.GENRES}}}` }
-id: { `"{{VALUE:${templateValues.ID}}}`" }
-cover: "![img] { `({{VALUE:${templateValues.COVER_PATH}}})` }"
+
+id: { `"{{VALUE:${templateValues.ID}}}"` }
+
+cover: { `"{{VALUE:${templateValues.COVER_PATH}}}"` }
 
 ---
 

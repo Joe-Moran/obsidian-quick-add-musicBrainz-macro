@@ -7,7 +7,7 @@ import {
 
 it('Formats an embedded image link from formatAsEmbeddedImageLink(param) as "![img|200](PARAM)"', () => {
   expect(formatAsEmbeddedImageLink("www.test.com/img")).toEqual(
-    "![img|200](www.test.com/img)"
+    "\"![img](www.test.com/img)\""
   );
 });
 

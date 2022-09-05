@@ -22,7 +22,7 @@ export default class ObsidianTemplateAlbumFactory {
       genres: formatAsFrontmatterList(genres),
       ownedFormats: formatAsFrontmatterList(ownedFormats),
       rating,
-      musicbrainzId: id,
+      id,
       coverPath: formatAsEmbeddedImageLink(coverPath),
     });
   }

@@ -3,7 +3,7 @@ const ILLEGAL_OBSIDIAN_FILE_NAME_PATTERN = /[\\,#%&{}/*<>?$'":@]*/g;
 import templateValues from "../data/obsidianTemplateAlbumValues";
 export default class ObsidianTemplateAlbum {
   constructor({
-    musicbrainzId = "",
+    id = "",
     title = "",
     releaseDate = "",
     artistName = "",
@@ -12,7 +12,7 @@ export default class ObsidianTemplateAlbum {
     rating = "",
     coverPath = "",
   }) {
-    this[templateValues.ID] = musicbrainzId;
+    this[templateValues.ID] = id;
     this[templateValues.TITLE] = title;
     this[templateValues.RELEASE_DATE] = releaseDate;
     this[templateValues.ARTIST] = artistName;

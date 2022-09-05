@@ -3,7 +3,7 @@ function formatAsWikiLink(textToLinkify) {
 }
 
 function formatAsEmbeddedImageLink(imagePath) {
-  return `![img|200](${imagePath})`;
+  return `"![img](${imagePath})"`;
 }
 
 function formatAsTag(textToTagify) {

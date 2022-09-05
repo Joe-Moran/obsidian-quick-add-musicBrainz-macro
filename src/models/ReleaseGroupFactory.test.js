@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/namespace
 import ReleaseGroupFactory from "./ReleaseGroupFactory";
 
 it("Builds expected data from ReleaseGroupFactory.buildFromApi", () => {
