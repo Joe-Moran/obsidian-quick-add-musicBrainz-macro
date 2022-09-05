@@ -8,6 +8,6 @@ export default {
   },
   rating: {
     label: "Rating?",
-    options: ["#todo", "⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"],
+    options: ["todo", "⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"],
   }
 };
