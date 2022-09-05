@@ -17,13 +17,13 @@ export default class ObsidianTemplateAlbumFactory {
   }) {
     return new ObsidianTemplateAlbum({
       title: title,
-      releaseDate: releaseDate,
+      date: releaseDate,
       artist: artistName,
       genres: formatAsFrontmatterList(genres),
-      ownedFormats: formatAsFrontmatterList(ownedFormats),
+      formats: formatAsFrontmatterList(ownedFormats),
       rating,
       musicbrainzId: id,
-      coverPath: formatAsEmbeddedImageLink(coverPath),
+      cover: formatAsEmbeddedImageLink(coverPath),
     });
   }
 }
