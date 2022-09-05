@@ -1,9 +1,4 @@
-import start from './src/music';
-
-module.exports =  {
-  entry: start,
-  settings: {
-    name: "Music Script",
-    author: "Joe Moran",
-  },
+import ReleaseGroupSearchInterface from "./src/api/ReleaseGroupSearchInterface";
+export default async (params) => {
+  await new ReleaseGroupSearchInterface(params).addAlbum();
 };
