@@ -22,7 +22,7 @@ function formatSearchResultSuggestion({ title, artistName, releaseDate, tags = [
 }
 
 function formatAsFrontmatterList(frontmatterValues) {
-  return frontmatterValues.join(", ")
+  return `[${frontmatterValues.join(", ")}]`;
 }
 
 export {
